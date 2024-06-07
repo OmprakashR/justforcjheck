@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disable Scroll Example</title>
+    <style>
+        body.no-scroll {
+            overflow: hidden;
+        }
+
+        .add {
+            /* Example styles */
+            background-color: #f0f0f0;
+            color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none; /* Prevents text selection */
+            -webkit-tap-highlight-color: transparent; /* Removes tap highlight color on iOS */
+        }
+
+        /* Add additional styles as needed */
+        .add:hover {
+            background-color: #e0e0e0;
+        }
+
+        .add:active {
+            background-color: #d0d0d0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="add" onclick="alert('Clicked!')">Click Me</div>
+
+<script>
+    function disableScroll() {
+        document.body.classList.add('no-scroll');
+        document.addEventListener('touchmove', preventDefault, { passive: false });
+    }
+
+    function enableScroll() {
+        document.body.classList.remove('no-scroll');
+        document.removeEventListener('touchmove', preventDefault);
+    }
+
+    function preventDefault(e) {
+        e.preventDefault();
+    }
+
+    // Example usage:
+    disableScroll(); // Call this function to disable scrolling
+    // enableScroll();  // Call this function to re-enable scrolling
+</script>
+
+</body>
+</html>
