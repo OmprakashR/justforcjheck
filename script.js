@@ -2,11 +2,17 @@ async function startVideo() {
     try {
         const video = document.getElementById('video');
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const infoDiv = document.getElementById('info');
+        infoDiv.innerHTML = `Camera: ${stream.getVideoTracks()[0].label || 'Unknown'}<br>`;
         video.srcObject = stream;
         video.onloadedmetadata = () => {
             resizeVideo(video);
+            updateScreenInfo();
         };
-        window.addEventListener('resize', () => resizeVideo(video));
+        window.addEventListener('resize', () => {
+            resizeVideo(video);
+            updateScreenInfo();
+        });
         video.addEventListener('click', captureFrame);
     } catch (error) {
         console.error('Error accessing the camera', error);
@@ -36,6 +42,11 @@ function resizeVideo(video) {
             video.style.transform = 'translateX(0)';
         }
     }
+}
+
+function updateScreenInfo() {
+    const infoDiv = document.getElementById('info');
+    infoDiv.innerHTML += `Screen ratio: ${window.innerWidth} x ${window.innerHeight}`;
 }
 
 function captureFrame() {
