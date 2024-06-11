@@ -24,18 +24,16 @@ function resizeVideo(video) {
             // Window is wider than the video aspect ratio
             video.style.width = '100%';
             video.style.height = 'auto';
-            const offset = (windowHeight - (windowWidth / videoRatio)) / 2;
-            video.style.top = `${offset}px`;
+            video.style.top = `${(windowHeight - (windowWidth / videoRatio)) / 2}px`;
             video.style.left = '0';
-            video.style.transform = 'translateY(0)'; // Reset centering
+            video.style.transform = 'translateY(0)';
         } else {
             // Window is taller than the video aspect ratio
             video.style.width = 'auto';
             video.style.height = '100%';
-            const offset = (windowWidth - (windowHeight * videoRatio)) / 2;
             video.style.top = '0';
-            video.style.left = `${offset}px`;
-            video.style.transform = 'translateX(0)'; // Reset centering
+            video.style.left = `${(windowWidth - (windowHeight * videoRatio)) / 2}px`;
+            video.style.transform = 'translateX(0)';
         }
     }
 }
@@ -43,15 +41,26 @@ function resizeVideo(video) {
 function captureFrame() {
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
     const videoRect = video.getBoundingClientRect();
 
     canvas.width = videoRect.width;
     canvas.height = videoRect.height;
 
     const context = canvas.getContext('2d');
-    context.drawImage(video, videoRect.left, videoRect.top, videoRect.width, videoRect.height, 0, 0, videoRect.width, videoRect.height);
+
+    // Calculate the scaling factor and offset to ensure we only capture the visible area
+    const scaleX = video.videoWidth / videoRect.width;
+    const scaleY = video.videoHeight / videoRect.height;
+    const scale = Math.max(scaleX, scaleY);
+
+    const offsetX = (video.videoWidth - videoRect.width * scale) / 2;
+    const offsetY = (video.videoHeight - videoRect.height * scale) / 2;
+
+    context.drawImage(
+        video,
+        offsetX, offsetY, video.videoWidth - 2 * offsetX, video.videoHeight - 2 * offsetY,
+        0, 0, canvas.width, canvas.height
+    );
 
     // Convert canvas to data URL and open it in a new tab
     const dataUrl = canvas.toDataURL('image/png');
