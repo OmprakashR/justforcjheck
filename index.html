@@ -3,13 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capture Video Screen</title>
+    <title>Fullscreen Video Capture with html2canvas</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="info"></div>
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas" style="display: none;"></canvas>
+   
+  
+    <div class="container" >
+        <div class="flxed " id="no-capture">
+            <button id="fullscreen">Go Fullscreen</button>
+           <button id="capture">Capture</button>
+           </div>
+           <div id="capture-area">
+            <video id="video" autoplay></video>
+           </div>  
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

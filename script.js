@@ -1,82 +1,46 @@
-async function startVideo() {
-    try {
-        const video = document.getElementById('video');
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        const infoDiv = document.getElementById('info');
-        infoDiv.innerHTML = `Camera: ${stream.getVideoTracks()[0].label || 'Unknown'}<br>`;
+const video = document.getElementById('video');
+const captureButton = document.getElementById('capture');
+const fullscreenButton = document.getElementById('fullscreen');
+const captureArea = document.getElementById('capture-area');
+
+// Get access to the user's camera
+navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
         video.srcObject = stream;
-        video.onloadedmetadata = () => {
-            resizeVideo(video);
-            updateScreenInfo();
-        };
-        window.addEventListener('resize', () => {
-            resizeVideo(video);
-            updateScreenInfo();
-        });
-        video.addEventListener('click', captureFrame);
-    } catch (error) {
-        console.error('Error accessing the camera', error);
+    })
+    .catch(err => {
+        console.error('Error accessing camera: ', err);
+    });
+
+// Enter fullscreen mode
+fullscreenButton.addEventListener('click', () => {
+    if (captureArea.requestFullscreen) {
+        captureArea.requestFullscreen();
+    } else if (captureArea.mozRequestFullScreen) { // Firefox
+        captureArea.mozRequestFullScreen();
+    } else if (captureArea.webkitRequestFullscreen) { // Chrome, Safari and Opera
+        captureArea.webkitRequestFullscreen();
+    } else if (captureArea.msRequestFullscreen) { // IE/Edge
+        captureArea.msRequestFullscreen();
     }
-}
-
-function resizeVideo(video) {
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    const videoRatio = video.videoWidth / video.videoHeight;
-    const windowRatio = windowWidth / windowHeight;
-
-    if (video.videoWidth > 0 && video.videoHeight > 0) {
-        if (windowRatio > videoRatio) {
-            // Window is wider than the video aspect ratio
-            video.style.width = '100%';
-            video.style.height = 'auto';
-            video.style.top = `${(windowHeight - (windowWidth / videoRatio)) / 2}px`;
-            video.style.left = '0';
-            video.style.transform = 'translateY(0)';
-        } else {
-            // Window is taller than the video aspect ratio
-            video.style.width = 'auto';
-            video.style.height = '100%';
-            video.style.top = '0';
-            video.style.left = `${(windowWidth - (windowHeight * videoRatio)) / 2}px`;
-            video.style.transform = 'translateX(0)';
-        }
-    }
-}
-
-function updateScreenInfo() {
-    const infoDiv = document.getElementById('info');
-    infoDiv.innerHTML += `Screen ratio: ${window.innerWidth} x ${window.innerHeight}`;
-}
-
-function captureFrame() {
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const videoRect = video.getBoundingClientRect();
-
-    canvas.width = videoRect.width;
-    canvas.height = videoRect.height;
-
-    const context = canvas.getContext('2d');
-
-    // Calculate the scaling factor and offset to ensure we only capture the visible area
-    const scaleX = video.videoWidth / videoRect.width;
-    const scaleY = video.videoHeight / videoRect.height;
-    const scale = Math.max(scaleX, scaleY);
-
-    const offsetX = (video.videoWidth - videoRect.width * scale) / 2;
-    const offsetY = (video.videoHeight - videoRect.height * scale) / 2;
-
-    context.drawImage(
-        video,
-        offsetX, offsetY, video.videoWidth - 2 * offsetX, video.videoHeight - 2 * offsetY,
-        0, 0, canvas.width, canvas.height
-    );
-
-    // Convert canvas to data URL and open it in a new tab
-    const dataUrl = canvas.toDataURL('image/png');
-    const newTab = window.open();
-    newTab.document.body.innerHTML = `<img src="${dataUrl}" alt="Captured Frame">`;
-}
-
-document.addEventListener('DOMContentLoaded', startVideo);
+});
+// Capture image from the screen
+captureButton.addEventListener('click', () => {
+    html2canvas(captureArea, {
+        scale: 2, // Increase the scale for higher resolution
+        useCORS: true, // Enable CORS for external images
+        width: captureArea.scrollWidth, // Set the width of the canvas
+        height: captureArea.scrollHeight // Set the height of the canvas
+    }).then(canvas => {
+        // Convert the canvas content to a data URL (base64 encoded image)
+        const imageDataURL = canvas.toDataURL('image/png', 1.0); // 1.0 for maximum quality
+        
+        // Create an image element to display the captured image
+        const img = document.createElement('img');
+        img.src = imageDataURL;
+        console.log(img.src);
+        document.body.appendChild(img);
+    }).catch(err => {
+        console.error('Error capturing screenshot: ', err);
+    });
+});
