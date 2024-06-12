@@ -3,8 +3,13 @@ const captureButton = document.getElementById('capture');
 const fullscreenButton = document.getElementById('fullscreen');
 const captureArea = document.getElementById('capture-area');
 
-// Get access to the user's camera
-navigator.mediaDevices.getUserMedia({ video: true })
+// Get access to the user's camera with high resolution
+navigator.mediaDevices.getUserMedia({
+    video: {
+        width: { ideal: 1920 },
+        height: { ideal: 1080 }
+    }
+})
     .then(stream => {
         video.srcObject = stream;
     })
@@ -24,6 +29,7 @@ fullscreenButton.addEventListener('click', () => {
         captureArea.msRequestFullscreen();
     }
 });
+
 // Capture image from the screen
 captureButton.addEventListener('click', () => {
     html2canvas(captureArea, {
@@ -34,7 +40,7 @@ captureButton.addEventListener('click', () => {
     }).then(canvas => {
         // Convert the canvas content to a data URL (base64 encoded image)
         const imageDataURL = canvas.toDataURL('image/png', 1.0); // 1.0 for maximum quality
-        
+
         // Create an image element to display the captured image
         const img = document.createElement('img');
         img.src = imageDataURL;
