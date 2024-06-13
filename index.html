@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Capture with FFmpeg.js</title>
-    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.10.0/dist/ffmpeg.min.js"></script>
+ 
     <style>
         #videoElement, #recordedVideo {
             width: 100%;
@@ -18,9 +18,6 @@
     <button id="stop">Stop Recording</button>
     <video id="recordedVideo" controls></video>
     <script>
-        const { createFFmpeg, fetchFile } = FFmpeg;
-        const ffmpeg = createFFmpeg({ log: true });
-
         let mediaRecorder;
         let recordedBlobs;
 
@@ -54,18 +51,10 @@
                     }
                 };
 
-                mediaRecorder.onstop = async () => {
+                mediaRecorder.onstop = () => {
                     const superBuffer = new Blob(recordedBlobs, { type: 'video/webm' });
-                    const arrayBuffer = await superBuffer.arrayBuffer();
-                    const uint8Array = new Uint8Array(arrayBuffer);
-
-                    await ffmpeg.load();
-                    ffmpeg.FS('writeFile', 'recording.webm', uint8Array);
-                    await ffmpeg.run('-i', 'recording.webm', 'output.mp4');
-                    const data = ffmpeg.FS('readFile', 'output.mp4');
-
-                    const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
-                    recordedVideo.src = URL.createObjectURL(videoBlob);
+                    const videoURL = URL.createObjectURL(superBuffer);
+                    recordedVideo.src = videoURL;
                 };
 
                 startButton.onclick = () => {
