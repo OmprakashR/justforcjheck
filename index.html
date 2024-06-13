@@ -30,10 +30,12 @@
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
 
+            // Adjust to desired high-resolution dimensions
             const constraints = {
                 video: {
-                    width: { ideal: screenWidth },
-                    height: { ideal: screenHeight },
+                    width: { ideal: 1920 },  // Ideal width for Full HD
+                    height: { ideal: 1080 }, // Ideal height for Full HD
+                    frameRate: { ideal: 30 }, // Adjust frame rate as needed
                 },
                 audio: true
             };
