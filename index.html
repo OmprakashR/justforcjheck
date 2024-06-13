@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Capture with FFmpeg.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.10.0/dist/ffmpeg.min.js"></script>
+    <style>
+        #videoElement, #recordedVideo {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <video id="videoElement" autoplay></video>
+    <button id="start">Start Recording</button>
+    <button id="stop">Stop Recording</button>
+    <video id="recordedVideo" controls></video>
+    <script>
+        const { createFFmpeg, fetchFile } = FFmpeg;
+        const ffmpeg = createFFmpeg({ log: true });
+
+        let mediaRecorder;
+        let recordedBlobs;
+
+        const videoElement = document.getElementById('videoElement');
+        const recordedVideo = document.getElementById('recordedVideo');
+        const startButton = document.getElementById('start');
+        const stopButton = document.getElementById('stop');
+
+        async function startCapture() {
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+
+            const constraints = {
+                video: {
+                    width: { ideal: screenWidth },
+                    height: { ideal: screenHeight },
+                },
+                audio: true
+            };
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = stream;
+
+                mediaRecorder = new MediaRecorder(stream);
+                recordedBlobs = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data && event.data.size > 0) {
+                        recordedBlobs.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const superBuffer = new Blob(recordedBlobs, { type: 'video/webm' });
+                    const arrayBuffer = await superBuffer.arrayBuffer();
+                    const uint8Array = new Uint8Array(arrayBuffer);
+
+                    await ffmpeg.load();
+                    ffmpeg.FS('writeFile', 'recording.webm', uint8Array);
+                    await ffmpeg.run('-i', 'recording.webm', 'output.mp4');
+                    const data = ffmpeg.FS('readFile', 'output.mp4');
+
+                    const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
+                    recordedVideo.src = URL.createObjectURL(videoBlob);
+                };
+
+                startButton.onclick = () => {
+                    mediaRecorder.start();
+                    console.log('MediaRecorder started', mediaRecorder);
+                };
+
+                stopButton.onclick = () => {
+                    mediaRecorder.stop();
+                    console.log('MediaRecorder stopped', mediaRecorder);
+                };
+            } catch (error) {
+                console.error('Error accessing media devices.', error);
+            }
+        }
+
+        startCapture();
+    </script>
+    <style>
+        body{
+            margin: 0;
+        }
+        #start{
+            position: fixed;
+            z-index: 1;
+            left: 10px;
+            top: 10px;;
+        }
+        #stop{
+            position: fixed;
+            z-index: 1;
+            right: 10px;
+            top: 10px;;
+        }
+        #recordedVideo{
+            position: fixed;
+            z-index: 1;
+            right: 10px;
+            top: 50px;
+        }
+    </style>
+</body>
+</html>
