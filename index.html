@@ -1,51 +1,64 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Capture with FFmpeg.js</title>
- 
+    <title>High-Quality Video Capture</title>
     <style>
         #videoElement, #recordedVideo {
             width: 100%;
             height: auto;
         }
+        #controls {
+            margin-top: 10px;
+       position: fixed;
+       z-index: 111;
+       top: 5px;
+       left:0 ;
+        }   
+        
     </style>
 </head>
 <body>
     <video id="videoElement" autoplay></video>
-    <button id="start">Start Recording</button>
-    <button id="stop">Stop Recording</button>
-    <video id="recordedVideo" controls></video>
+    <div id="controls">
+        <button id="start">Start Recording</button>
+        <button id="stop">Stop Recording</button>
+        <button id="download" style="display: none;">Download Video</button>
+    </div>
+    <video id="recordedVideo" controls style="display: none;"></video>
     <script>
         let mediaRecorder;
         let recordedBlobs;
+        let videoStream;
 
         const videoElement = document.getElementById('videoElement');
         const recordedVideo = document.getElementById('recordedVideo');
         const startButton = document.getElementById('start');
         const stopButton = document.getElementById('stop');
+        const downloadButton = document.getElementById('download');
 
         async function startCapture() {
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
 
-            // Adjust to desired high-resolution dimensions
             const constraints = {
                 video: {
-                    width: { ideal: 1920 },  // Ideal width for Full HD
-                    height: { ideal: 1080 }, // Ideal height for Full HD
-                    frameRate: { ideal: 30 }, // Adjust frame rate as needed
+                    width: { ideal: screenWidth },
+                    height: { ideal: screenHeight },
+                    frameRate: { ideal: 60 },
+                    aspectRatio: { ideal: screenWidth / screenHeight }
                 },
                 audio: true
             };
 
             try {
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                videoElement.srcObject = stream;
+                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = videoStream;
 
-                mediaRecorder = new MediaRecorder(stream);
                 recordedBlobs = [];
+                mediaRecorder = new MediaRecorder(videoStream, { mimeType: 'video/webm;codecs=vp9' });
 
                 mediaRecorder.ondataavailable = (event) => {
                     if (event.data && event.data.size > 0) {
@@ -55,8 +68,11 @@
 
                 mediaRecorder.onstop = () => {
                     const superBuffer = new Blob(recordedBlobs, { type: 'video/webm' });
-                    const videoURL = URL.createObjectURL(superBuffer);
-                    recordedVideo.src = videoURL;
+                    recordedVideo.src = URL.createObjectURL(superBuffer);
+                    recordedVideo.style.display = 'block';
+                    downloadButton.style.display = 'block';
+                    downloadButton.href = recordedVideo.src;
+                    downloadButton.download = 'recorded_video.webm';
                 };
 
                 startButton.onclick = () => {
@@ -68,6 +84,18 @@
                     mediaRecorder.stop();
                     console.log('MediaRecorder stopped', mediaRecorder);
                 };
+
+                downloadButton.onclick = () => {
+                    const blob = new Blob(recordedBlobs, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    document.body.appendChild(a);
+                    a.style = 'display: none';
+                    a.href = url;
+                    a.download = 'recorded_video.webm';
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                };
             } catch (error) {
                 console.error('Error accessing media devices.', error);
             }
@@ -75,30 +103,5 @@
 
         startCapture();
     </script>
-    <style>
-        body{
-            margin: 0;
-        }
-        #start{
-            position: fixed;
-            z-index: 1;
-            left: 10px;
-            top: 10px;;
-        }
-        #stop{
-            position: fixed;
-            z-index: 1;
-            right: 10px;
-            top: 10px;;
-        }
-        #recordedVideo{
-            position: fixed;
-            z-index: 1;
-            right: 10px;
-            top: 50px;
-            width: 100px;
-            height: 100px;
-        }
-    </style>
 </body>
 </html>
