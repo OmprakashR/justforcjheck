@@ -8,6 +8,7 @@ body{
     padding: 0;
     background-color: red;
     color: yellow;
+    text-decoration: none;
 }
 #capture-area{
     width: 100%;
