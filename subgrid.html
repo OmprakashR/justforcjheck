@@ -1,0 +1,38 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="parent">
+        <div class="child">Child 1</div>
+        <div class="child">Child 2</div>
+        <div class="child">
+          <div class="grandchild">Grandchild 1</div>
+          <div class="grandchild">Grandchild 2</div>
+        </div>
+        <div class="child">Child 3</div>
+      </div>
+<style>
+    .parent {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Define 3 equal columns */
+  gap: 10px;
+}
+
+.child {
+  display: grid;
+  grid-template-columns: subgrid; /* Inherit the column structure of the parent grid */
+}
+
+.grandchild {
+  border: 1px solid #000;
+  padding: 10px; 
+}
+
+</style>      
+</body>
+</html>
